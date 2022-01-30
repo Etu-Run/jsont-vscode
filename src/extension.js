@@ -88,7 +88,7 @@ function sendShareReq(data) {
 	},  (res) => {
 			res.setEncoding('utf8');
 			res.on('data', (chunk) => {
-					vscode.window.showInformationMessage(`Share Success：http://jsont.run/${JSON.parse(chunk).data}`);
+					vscode.window.showInformationMessage(`Success：http://jsont.run/${JSON.parse(chunk).data}`);
 					myStatusBarItem.text = `$(live-share)`;
 			});
 			res.on('end', () => {
