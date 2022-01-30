@@ -15,13 +15,14 @@ function activate({ subscriptions }) {
     // item is selected
     const myCommandId = 'sample.showSelectionCount';
     subscriptions.push(vscode.commands.registerCommand(myCommandId, () => {
-				try {
-						JSON.parse(content)
-						sendShareReq();
-
-				} catch (e) {
-						vscode.window.showErrorMessage('当前选中的内容为非JSON格式');
+			
+				const data = extractJson();
+				if (!data) {
+						vscode.window.showErrorMessage('The content should be a valid JSON like {..} or [..]');
+						return;
 				}
+				sendShareReq(data);
+				// vscode.window.showInformationMessage(data);
     }));
 
 
@@ -42,11 +43,34 @@ function activate({ subscriptions }) {
 }
 exports.activate = activate;
 
-// 发送请求
+// 从选中的内容中提取JSON
+function extractJson() {
+		// 必须以 { 或者 [ 开头 以 } 或者 ] 结尾
+		if (!/^(\s|[\r\n])*\{(.|[\r\n])+\}(\s|[\r\n])*$/.test(content) && !/^(\s|[\r\n])*\[(.|[\r\n])+\](\s|[\r\n])*$/.test(content)) {
+			return false
+		};
+		try {
+				// 可以直接转换的 { "name": "json" }
+				return JSON.stringify(JSON.parse(content), null, 4);
+		} catch (e) {
+				// 代码形式的  { name: 'json' } 在沙箱中进行验证
+				try {
+						const vm = require('vm');
+						const context = {};
+						const script = new vm.Script(`var json=${content}`);
+						vm.createContext(context);
+						script.runInContext(context);
+						return JSON.stringify(context.json, null, 4);
+				} catch (e) {
+						return false;
+				}
+		}
+}
 
-function sendShareReq() {
+// 发送请求
+function sendShareReq(data) {
 	const postData = JSON.stringify({
-		content: content
+		content: data
 	});
 
 	myStatusBarItem.text = '$(loading~spin)'
@@ -64,7 +88,7 @@ function sendShareReq() {
 	},  (res) => {
 			res.setEncoding('utf8');
 			res.on('data', (chunk) => {
-					vscode.window.showInformationMessage(`分享成功：http://jsont.run/${JSON.parse(chunk).data}`);
+					vscode.window.showInformationMessage(`Share Success：http://jsont.run/${JSON.parse(chunk).data}`);
 					myStatusBarItem.text = `$(live-share)`;
 			});
 			res.on('end', () => {

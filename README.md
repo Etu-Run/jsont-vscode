@@ -21,6 +21,25 @@ A share success message will appear at right bottom, with a url, just copy the u
 ![step4](./images/step-4.png)
 
 
+# Valid formats
+
+What content can be share? This must be significant `[...]` or `[...]`, not empty `[]` or `{}`, not primitive type. You can select following format content
+
+
+```js
+{
+   "name": "jsont"
+}
+```
+
+Or
+
+```js
+{
+   name: 'jsont'
+}
+```
+
 # Secure
 
 We will keep your data private and safety, and the data on the server will be stored just for 1 hour, so you shoud share it as soon as possible. 
